@@ -13,8 +13,51 @@
  */
 
 // ============================================================================
+// UTILITY FUNCTIONS (No external dependencies)
+// ============================================================================
+
+/**
+ * Generates a unique ID string based on timestamp and random suffix
+ * @returns A unique ID string in the format "timestamp-randomhex"
+ * @example
+ * const id = generateId(); // "1703145600000-abc123"
+ */
+export function generateId(): string {
+  const timestamp = Date.now();
+  const randomPart = Math.random().toString(36).substring(2, 8);
+  return `${timestamp}-${randomPart}`;
+}
+
+// ============================================================================
 // DATA STRUCTURES
 // ============================================================================
+
+/**
+ * Represents an active commute timing session
+ * Used by the StopwatchService to track an in-progress trip
+ */
+export interface CommuteSession {
+  /** Unique identifier for the session */
+  id: string;
+  /** When the commute session started */
+  startTime: Date;
+  /** When the commute session ended (if stopped) */
+  endTime?: Date;
+  /** Total elapsed duration in milliseconds */
+  duration: number;
+  /** Whether the session is currently paused */
+  isPaused: boolean;
+  /** Total paused duration in milliseconds */
+  pausedDuration: number;
+  /** Route name (e.g., "BDO Imus → SM Molino") */
+  route?: string;
+  /** Route identifier from backend (e.g., "BDO-SMMOLINO-OUT") */
+  routeId?: string;
+  /** Starting location */
+  origin?: string;
+  /** Ending location */
+  destination?: string;
+}
 
 /**
  * Represents a completed commute record stored in history
@@ -29,8 +72,10 @@ export interface CommuteRecord {
   endTime: Date;
   /** Total duration in milliseconds */
   duration: number;
-  /** Route name or identifier (e.g., "Imus-Bacoor") */
-  routeId: string;
+  /** Route name (e.g., "BDO Imus → SM Molino") */
+  route?: string;
+  /** Route identifier from backend (e.g., "BDO-SMMOLINO-OUT") */
+  routeId?: string;
   /** Starting location */
   origin?: string;
   /** Ending location */
@@ -512,6 +557,7 @@ export function createCommuteRecord(data: CreateCommuteRecord & { id?: string })
     endTime: data.endTime,
     duration: data.duration || calculateDuration(data.startTime, data.endTime),
     route: data.route,
+    routeId: data.routeId,
     origin: data.origin,
     destination: data.destination,
     distance: data.distance,
